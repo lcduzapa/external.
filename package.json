@@ -1,0 +1,12 @@
+{
+  "name": "ip-tracker",
+  "version": "1.0.0",
+  "description": "Rastreador de IPs para empresas",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

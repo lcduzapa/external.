@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel Admin — IP Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #07080d;
+      --surface: #0f1018;
+      --surface2: #171822;
+      --border: rgba(255,255,255,0.06);
+      --accent: #e8ff47;
+      --accent2: #47ffe8;
+      --danger: #ff4747;
+      --text: #e8e8f0;
+      --muted: #5a5a70;
+      --mono: 'DM Mono', monospace;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    header {
+      max-width: 1100px;
+      margin: 0 auto 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .logo span { color: var(--accent); }
+
+    .header-actions {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    button {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      padding: 0.55rem 1.2rem;
+      transition: all 0.15s ease;
+    }
+
+    .btn-refresh {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-refresh:hover { background: var(--surface); border-color: rgba(255,255,255,0.12); }
+
+    .btn-copy {
+      background: var(--accent);
+      color: #000;
+    }
+    .btn-copy:hover { background: #d4e83d; }
+
+    .btn-clear {
+      background: rgba(255,71,71,0.1);
+      color: var(--danger);
+      border: 1px solid rgba(255,71,71,0.2);
+    }
+    .btn-clear:hover { background: rgba(255,71,71,0.2); }
+
+    .stats {
+      max-width: 1100px;
+      margin: 0 auto 2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .stat-value.teal { color: var(--accent2); }
+
+    .track-link-box {
+      max-width: 1100px;
+      margin: 0 auto 2rem;
+      background: var(--surface);
+      border: 1px solid rgba(232,255,71,0.2);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .track-link-label {
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .track-link-url {
+      font-family: var(--mono);
+      font-size: 0.9rem;
+      color: var(--accent);
+      flex: 1;
+      word-break: break-all;
+    }
+
+    .table-wrapper {
+      max-width: 1100px;
+      margin: 0 auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead tr {
+      background: var(--surface2);
+    }
+
+    th {
+      text-align: left;
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 0.9rem 1.25rem;
+      font-size: 0.875rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    tr:hover td { background: rgba(255,255,255,0.015); }
+
+    .ip-cell {
+      font-family: var(--mono);
+      font-size: 0.9rem;
+      color: var(--accent2);
+      font-weight: 500;
+    }
+
+    .time-cell {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .ua-cell {
+      font-size: 0.78rem;
+      color: var(--muted);
+      max-width: 300px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--muted);
+    }
+
+    .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .empty-text { font-size: 0.9rem; }
+
+    .status-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent2);
+      box-shadow: 0 0 6px var(--accent2);
+      margin-right: 0.4rem;
+      animation: blink 1.5s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--accent);
+      color: #000;
+      font-weight: 500;
+      font-size: 0.85rem;
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.2s ease;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">IP <span>Tracker</span> — Admin</div>
+  <div class="header-actions">
+    <span><span class="status-dot"></span>Ao vivo</span>
+    <button class="btn-refresh" onclick="loadVisits()">↻ Atualizar</button>
+    <button class="btn-copy" onclick="copyLink()">Copiar link de rastreio</button>
+    <button class="btn-clear" onclick="clearVisits()">Limpar registros</button>
+  </div>
+</header>
+
+<!-- Track Link Box -->
+<div class="track-link-box">
+  <span class="track-link-label">🔗 Link de rastreio</span>
+  <span class="track-link-url" id="trackUrl">http://localhost:3000/track</span>
+  <button class="btn-copy" onclick="copyLink()" style="flex-shrink:0;">Copiar</button>
+</div>
+
+<!-- Stats -->
+<div class="stats">
+  <div class="stat-card">
+    <div class="stat-label">Total de visitas</div>
+    <div class="stat-value" id="statTotal">—</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">IPs únicos</div>
+    <div class="stat-value teal" id="statUnique">—</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Último acesso</div>
+    <div class="stat-value" id="statLast" style="font-size:1.1rem;padding-top:0.6rem;color:var(--text);">—</div>
+  </div>
+</div>
+
+<!-- Table -->
+<div class="table-wrapper">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Endereço IP</th>
+        <th>Data / Hora</th>
+        <th>Referência</th>
+        <th>User Agent</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody">
+      <tr><td colspan="5" class="empty">
+        <div class="empty-icon">📡</div>
+        <div class="empty-text">Carregando registros...</div>
+      </td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const trackUrl = `${location.protocol}//${location.hostname}:3000/track`;
+  document.getElementById('trackUrl').textContent = trackUrl;
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  function copyLink() {
+    navigator.clipboard.writeText(trackUrl).then(() => showToast('✅ Link copiado!'));
+  }
+
+  function formatDate(iso) {
+    const d = new Date(iso);
+    return d.toLocaleString('pt-BR', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit', second: '2-digit'
+    });
+  }
+
+  async function loadVisits() {
+    try {
+      const res = await fetch('/admin/visits');
+      const visits = await res.json();
+
+      const tbody = document.getElementById('tableBody');
+      document.getElementById('statTotal').textContent = visits.length;
+      document.getElementById('statUnique').textContent = new Set(visits.map(v => v.ip)).size;
+      document.getElementById('statLast').textContent = visits.length
+        ? formatDate(visits[visits.length - 1].timestamp)
+        : '—';
+
+      if (visits.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="empty">
+          <div class="empty-icon">📭</div>
+          <div class="empty-text">Nenhum acesso registrado ainda.<br/>Compartilhe o link de rastreio para começar.</div>
+        </td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = [...visits].reverse().map((v, i) => `
+        <tr>
+          <td style="color:var(--muted);font-family:var(--mono);font-size:0.8rem">${visits.length - i}</td>
+          <td class="ip-cell">${v.ip}</td>
+          <td class="time-cell">${formatDate(v.timestamp)}</td>
+          <td style="font-size:0.8rem;color:var(--muted)">${v.referer || 'Direto'}</td>
+          <td class="ua-cell" title="${v.userAgent}">${v.userAgent}</td>
+        </tr>
+      `).join('');
+    } catch(e) {
+      document.getElementById('tableBody').innerHTML = `<tr><td colspan="5" class="empty">
+        <div class="empty-icon">⚠️</div>
+        <div class="empty-text">Erro ao conectar com o servidor.<br/>Verifique se o servidor Node.js está rodando.</div>
+      </td></tr>`;
+    }
+  }
+
+  async function clearVisits() {
+    if (!confirm('Tem certeza que deseja apagar todos os registros?')) return;
+    await fetch('/admin/visits', { method: 'DELETE' });
+    showToast('🗑️ Registros apagados');
+    loadVisits();
+  }
+
+  // Load on start and auto-refresh every 10s
+  loadVisits();
+  setInterval(loadVisits, 10000);
+</script>
+</body>
+</html>
