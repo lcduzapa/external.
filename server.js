@@ -3,8 +3,16 @@ const fs = require('fs');
 const path = require('path');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const DATA_FILE = path.join(__dirname, 'visits.json');
+
+// Converte ::ffff:127.0.0.1 ou ::1 para formato IPv4 legível
+function formatIP(ip) {
+  if (!ip) return 'Desconhecido';
+  if (ip === '::1') return '127.0.0.1';
+  if (ip.startsWith('::ffff:')) return ip.replace('::ffff:', '');
+  return ip;
+}
 
 // Init data file
 if (!fs.existsSync(DATA_FILE)) {
@@ -15,13 +23,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Track visit
 app.get('/track', (req, res) => {
-  const ip =
+  const rawIP =
     req.headers['x-forwarded-for']?.split(',')[0].trim() ||
     req.headers['x-real-ip'] ||
     req.connection.remoteAddress ||
     req.socket.remoteAddress ||
     'Desconhecido';
 
+  const ip = formatIP(rawIP);
   const userAgent = req.headers['user-agent'] || 'Desconhecido';
   const referer = req.headers['referer'] || 'Direto';
   const timestamp = new Date().toISOString();
@@ -34,7 +43,6 @@ app.get('/track', (req, res) => {
 
   console.log(`[${timestamp}] Novo acesso — IP: ${ip}`);
 
-  // Redirect to main page after tracking
   res.redirect('/');
 });
 
@@ -50,8 +58,8 @@ app.delete('/admin/visits', (req, res) => {
   res.json({ ok: true });
 });
 
-app.listen(PORT, () => {
-  console.log(`\n✅ Servidor rodando em http://localhost:${PORT}`);
-  console.log(`📊 Painel admin: http://localhost:${PORT}/admin.html`);
-  console.log(`🔗 Link de rastreio: http://localhost:${PORT}/track\n`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`\n✅ Servidor rodando na porta ${PORT}`);
+  console.log(`📊 Painel admin: /admin.html`);
+  console.log(`🔗 Link de rastreio: /track\n`);
 });
